@@ -2,6 +2,8 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 import numpy as np
+import telegram
+import json
 
 BASE_URL = 'https://finance.naver.com/sise/sise_market_sum.nhn?sosok='
 START_PAGE = 1
@@ -56,6 +58,15 @@ def sise_crawl(code, page, fields):
     df = pd.DataFrame(data=number_data, columns=header_data)
 
     return df
+
+
+def send_telegram(data):
+    with open('test.json', 'r') as f:
+        json_data = json.loads(f.read())
+        token = json_data['token']
+        bot = telegram.Bot(token=token)
+        chat_id = 1752949298
+        bot.sendMessage(chat_id=chat_id, text='test')
 
 
 if __name__ == '__main__':
