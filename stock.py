@@ -21,11 +21,12 @@ def main(code):
 
         # query fields
         ipt_html = soup.select_one('div.subcnt_sise_item_top')
-        fields = [item.get('value') for item in ipt_html.select('input')]
+        fields = [item.get('value') for item in ipt_html.select('input') 
+                if item.get('value') in ['per', 'pbr', 'roe', 'market_sum', 'property_total', 'debt_total', 'sales', 'reserve_ratio', 'listed_stock_cnt']]
 
         results = [ sise_crawl(code, page, fields) for page in range(1, total_page_num+1)]
         df = pd.concat(results, axis=0, ignore_index=True)
-        df.to_csv('result.csv', sep='\t')
+        df.to_excel('result.xlsx', index=False)
 
 
 def sise_crawl(code, page, fields):
@@ -42,13 +43,25 @@ def sise_crawl(code, page, fields):
     table_html = soup.select_one('table.type_2')
 
     # column
-    header_data = [item.get_text().strip() for item in table_html.find('thead').find('tr').find_all('th')]
+    header_data = [item.get_text().strip() for item in table_html.find('thead').find('tr').find_all('th') if item.get_text().strip() not in ['전일비', '등락률']]
+    del header_data[-1]
 
     # data
     td_items = [tr_item.find_all('td') for tr_item in table_html.find('tbody').find_all('tr')][1:]
 
     # 내부 데이터
-    inner_data = [i.get_text().strip() for item in td_items for i in item if (i.find('a') or len(i.get('class', [])) > 0) or ('title' in i.find('a').get('class', []) or ('number' in i.get('class', [])) and ('no' not in i.get('class', [])))]
+    # inner_data = [i.get_text().strip().replace(',', '') for item in td_items for i in item 
+    #     if (i.find('a') or len(i.get('class', [])) > 0 or i.get('class', []) in ['no', 'number']) and i.get_text().strip() != '' ]
+    inner_data = []
+    for item in td_items:
+        for i in item[0:len(item)-1]:
+            if i.find('a') or len(i.get('class', [])) > 0:
+                child = i.findChildren()
+                if len(child) >= 1:
+                    if child[0].get('href'):
+                        inner_data.append(child[0].get_text().strip())
+                else:
+                    inner_data.append(i.get_text().strip().replace(',', ''))
 
     # 번호 데이터
     no_data = [i.get_text().strip() for item in td_items for i in item if len(i.get('class', [])) > 0 and ('no' in i.get('class', []))]
