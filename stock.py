@@ -28,6 +28,31 @@ def main(code):
         df = pd.concat(results, axis=0, ignore_index=True)
         df.to_excel('result.xlsx', index=False)
 
+        # load data
+        pd_result = pd.read_excel('result.xlsx')
+        pd_result = pd_result.dropna()
+        # BPS
+        pd_result['BPS'] = pd_result['현재가'] / pd_result['PBR']
+        # 부채비율
+        pd_result['부채비율'] = (pd_result['부채총계']/pd_result['자산총계']) * 100
+        # PER x PBR 
+        pd_result['PER x PBR'] = pd_result['PER'] * pd_result['PBR']
+        # 1/PER
+        pd_result['1/PER'] = 1/pd_result['PER'].astype(float)
+        # BPR
+        pd_result['BPR'] = 1/pd_result['PBR'].astype(float)
+        # RANK BPR
+        pd_result['RANK_BPR'] = pd_result['BPR'].rank(method='max', ascending=False)
+        # RANK_1/PER
+        pd_result['RANK_1/PER'] = pd_result['1/PER'].rank(method='max', ascending=False)
+        # RANK_VALUE
+        pd_result['RANK_VALUE'] = (pd_result['RANK_BPR'] + pd_result['RANK_1/PER']) / 2
+        # 정렬
+        pd_result = pd_result.sort_values(by=['RANK_VALUE'])
+
+        send_telegram(pd_result)
+
+
 
 def sise_crawl(code, page, fields):
     data = {
@@ -74,12 +99,12 @@ def sise_crawl(code, page, fields):
 
 
 def send_telegram(data):
-    with open('test.json', 'r') as f:
+    with open('token.json', 'r') as f:
         json_data = json.loads(f.read())
         token = json_data['token']
         bot = telegram.Bot(token=token)
         chat_id = 1752949298
-        bot.sendMessage(chat_id=chat_id, text='test')
+        bot.sendMessage(chat_id=chat_id, text=data.to_json())
 
 
 if __name__ == '__main__':
