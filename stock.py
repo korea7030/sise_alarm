@@ -50,7 +50,7 @@ def main(code):
         # 정렬
         pd_result = pd_result.sort_values(by=['RANK_VALUE'])
 
-        send_telegram(pd_result)
+        send_telegram(pd_result['종목명'][:20])
 
 
 
@@ -104,7 +104,7 @@ def send_telegram(data):
         token = json_data['token']
         bot = telegram.Bot(token=token)
         chat_id = 1752949298
-        bot.sendMessage(chat_id=chat_id, text=data.to_json())
+        bot.sendMessage(chat_id=chat_id, text=data)
 
 
 if __name__ == '__main__':
