@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.views import generic
+from django.conf import settings
 
 import requests
 from bs4 import BeautifulSoup
@@ -7,6 +8,7 @@ import pandas as pd
 import numpy as np
 import json
 import telegram
+import os
 
 BASE_URL = 'https://finance.naver.com/sise/sise_market_sum.nhn?sosok='
 START_PAGE = 1
@@ -19,8 +21,11 @@ class IndexView(generic.base.TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        df = self.make_dataframe(KOSPI_CODE)
-        context['result_data'] = df
+        df = pd.read_excel(os.path.join(settings.BASE_DIR, 'app/data/result_data.xlsx'))
+        json_records = df.reset_index().to_json(orient ='records')
+        data = json.loads(json_records)
+        context['result_data'] = data
+        print(df.head())
         return context
 
     def make_dataframe(self, code):

@@ -5,3 +5,5 @@ result.xlsx
 datas.xlsx
 */*/__pycache__/*
 */data/*
+result_data.xlsx
+lowstock/static/*

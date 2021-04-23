@@ -49,8 +49,9 @@ def main(code):
         pd_result['RANK_VALUE'] = (pd_result['RANK_BPR'] + pd_result['RANK_1/PER']) / 2
         # 정렬
         pd_result = pd_result.sort_values(by=['RANK_VALUE'])
+        pd_result.to_excel('result_data.xlsx', index=False)
 
-        send_telegram(pd_result['종목명'][:20])
+        # send_telegram(pd_result['종목명'][:20])
 
 
 

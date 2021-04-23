@@ -1,9 +1,52 @@
-<html>
-    <head>
-    </head>
-    <body>
-        {% for data in result_data %}
-            {{ data }}
-        {% endfor %}
-    </body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+<link href='https://fonts.googleapis.com/css?family=Indie+Flower' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Pacifico' rel='stylesheet' type='text/css'>
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css" rel="stylesheet" type='text/css'">
+<script src="https://code.jquery.com/jquery-2.1.4.min.js">
+</script>
+    <style>
+      .title {
+        font-family: 'Indie Flower', serif;
+        font-size: 30px;
+        color: #1E90FF;
+      }
+      h1 {
+        font-family: 'Pacifico', serif;
+        font-size: 45px;
+        color: #1E90FF;
+      }
+    </style>
+</head>
+<body>
+<div class="container"><h1>My blog</h1><br>
+{% for post in result_data %}
+    <div>
+        <div class="title">{{ post.종목명 }}</div>
+        <p>현재가: {{ post.현재가 }}.</p>
+        <p>부채비율: {{ post.부채비율 }}</p>
+        <p>BPR: {{ post.BPR }}</p>
+        <strong>순위값 : {{ post.RANK_VALUE }}</strong>
+    </div>
+{% endfor %}
+pd_result['BPS'] = pd_result['현재가'] / pd_result['PBR']
+# 부채비율
+pd_result['부채비율'] = (pd_result['부채총계']/pd_result['자산총계']) * 100
+# PER x PBR 
+pd_result['PER x PBR'] = pd_result['PER'] * pd_result['PBR']
+# 1/PER
+pd_result['1/PER'] = 1/pd_result['PER'].astype(float)
+# BPR
+pd_result['BPR'] = 1/pd_result['PBR'].astype(float)
+# RANK BPR
+pd_result['RANK_BPR'] = pd_result['BPR'].rank(method='max', ascending=False)
+# RANK_1/PER
+pd_result['RANK_1/PER'] = pd_result['1/PER'].rank(method='max', ascending=False)
+# RANK_VALUE
+pd_result['RANK_VALUE'] = (pd_result['RANK_BPR'] + pd_result['RANK_1/PER']) / 2
+</div>
+</body>
 </html>
