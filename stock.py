@@ -26,10 +26,10 @@ def main(code):
 
         results = [ sise_crawl(code, page, fields) for page in range(1, total_page_num+1)]
         df = pd.concat(results, axis=0, ignore_index=True)
-        df.to_excel('result.xlsx', index=False)
+        df.to_excel('./lowstock/app/data/result.xlsx', index=False)
 
         # load data
-        pd_result = pd.read_excel('result.xlsx')
+        pd_result = pd.read_excel('./lowstock/app/data/result.xlsx')
         pd_result = pd_result.dropna()
         # BPS
         pd_result['BPS'] = pd_result['현재가'] / pd_result['PBR']
@@ -49,7 +49,7 @@ def main(code):
         pd_result['RANK_VALUE'] = (pd_result['RANK_BPR'] + pd_result['RANK_1/PER']) / 2
         # 정렬
         pd_result = pd_result.sort_values(by=['RANK_VALUE'])
-        pd_result.to_excel('result_data.xlsx', index=False)
+        pd_result.to_excel('./lowstock/app/data/result_data.xlsx', index=False)
 
         # send_telegram(pd_result['종목명'][:20])
 
