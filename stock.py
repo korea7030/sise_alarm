@@ -14,44 +14,46 @@ KOSDAK_CODE = 1
 def main(code):
     res = requests.get('{}{}{}'.format(BASE_URL, str(code), '&page={}'.format(START_PAGE)))
     if res.status_code == 200:
-        soup = BeautifulSoup(res.text, 'lxml')
+        try:
+            soup = BeautifulSoup(res.text, 'lxml')
 
-        # total page num
-        total_page_num = soup.select_one('td.pgRR > a')
-        total_page_num = int(total_page_num.get('href').split('=')[-1])
+            # total page num
+            total_page_num = soup.select_one('td.pgRR > a')
+            total_page_num = int(total_page_num.get('href').split('=')[-1])
 
-        # query fields
-        ipt_html = soup.select_one('div.subcnt_sise_item_top')
-        fields = [item.get('value') for item in ipt_html.select('input') 
-                if item.get('value') in ['per', 'pbr', 'roe', 'market_sum', 'property_total', 'debt_total', 'sales', 'reserve_ratio', 'listed_stock_cnt']]
+            # query fields
+            ipt_html = soup.select_one('div.subcnt_sise_item_top')
+            fields = [item.get('value') for item in ipt_html.select('input') 
+                    if item.get('value') in ['per', 'pbr', 'roe', 'market_sum', 'property_total', 'debt_total', 'sales', 'reserve_ratio', 'listed_stock_cnt']]
 
-        results = [ sise_crawl(code, page, fields) for page in range(1, total_page_num+1)]
-        df = pd.concat(results, axis=0, ignore_index=True)
-        df.to_excel('./lowstock/app/data/result.xlsx', index=False)
+            results = [ sise_crawl(code, page, fields) for page in range(1, total_page_num+1)]
+            df = pd.concat(results, axis=0, ignore_index=True)
+            df.to_excel('./lowstock/app/data/result.xlsx', index=False)
 
-        # load data
-        pd_result = pd.read_excel('./lowstock/app/data/result.xlsx')
-        pd_result = pd_result.dropna()
-        # BPS
-        pd_result['BPS'] = pd_result['현재가'] / pd_result['PBR']
-        # 부채비율
-        pd_result['부채비율'] = (pd_result['부채총계']/pd_result['자산총계']) * 100
-        # PER x PBR 
-        pd_result['PER x PBR'] = pd_result['PER'] * pd_result['PBR']
-        # 1/PER
-        pd_result['1/PER'] = 1/pd_result['PER'].astype(float)
-        # BPR
-        pd_result['BPR'] = 1/pd_result['PBR'].astype(float)
-        # RANK BPR
-        pd_result['RANK_BPR'] = pd_result['BPR'].rank(method='max', ascending=False)
-        # RANK_1/PER
-        pd_result['RANK_1/PER'] = pd_result['1/PER'].rank(method='max', ascending=False)
-        # RANK_VALUE
-        pd_result['RANK_VALUE'] = (pd_result['RANK_BPR'] + pd_result['RANK_1/PER']) / 2
-        # 정렬
-        pd_result = pd_result.sort_values(by=['RANK_VALUE'])
-        pd_result.to_excel('./lowstock/app/data/result_data.xlsx', index=False)
-
+            # load data
+            pd_result = pd.read_excel('./lowstock/app/data/result.xlsx')
+            pd_result = pd_result.dropna()
+            # BPS
+            pd_result['BPS'] = pd_result['현재가'] / pd_result['PBR']
+            # 부채비율
+            pd_result['부채비율'] = (pd_result['부채총계']/pd_result['자산총계']) * 100
+            # PER x PBR 
+            pd_result['PER x PBR'] = pd_result['PER'] * pd_result['PBR']
+            # 1/PER
+            pd_result['1/PER'] = 1/pd_result['PER'].astype(float)
+            # BPR
+            pd_result['BPR'] = 1/pd_result['PBR'].astype(float)
+            # RANK BPR
+            pd_result['RANK_BPR'] = pd_result['BPR'].rank(method='max', ascending=False)
+            # RANK_1/PER
+            pd_result['RANK_1/PER'] = pd_result['1/PER'].rank(method='max', ascending=False)
+            # RANK_VALUE
+            pd_result['RANK_VALUE'] = (pd_result['RANK_BPR'] + pd_result['RANK_1/PER']) / 2
+            # 정렬
+            pd_result = pd_result.sort_values(by=['RANK_VALUE'])
+            pd_result.to_excel('./lowstock/app/data/result_data.xlsx', index=False)
+        except Exception as e:
+            print('error : ', e)
         # send_telegram(pd_result['종목명'][:20])
 
 
